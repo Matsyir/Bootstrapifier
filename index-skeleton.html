@@ -1,0 +1,47 @@
+<html>
+<head>
+<script src="./Bootstrapifier.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<title>Bootstrapifier</title>
+<script>
+    $(function(){
+        $("#bootstrapify").click(function(){
+            $("#htmlOutput").val(Bootstrapifier.bootstrapify($("#htmlInput").val()));
+        });
+    });
+</script>
+<style>
+    body, #htmlInput, #htmlOutput {
+        font-family: monospace,monospace;
+        /* background-color:#222221;
+        color: #EEEEEF; */
+    }
+</style>
+</head>
+
+<body>
+    <h1>Bootstrapifier</h1>
+    
+    <h3>Requirements</h3>
+    <ul>
+        <li>Must be valid HTML.</li>
+    </ul>
+    
+    <h3>Options</h3>
+    <input type="checkbox" id="wrapContainer" checked>
+    <label for="wrapContainer">Wrap body with container?</label>
+    <br/>
+    <input type="checkbox" id="wrapRow" checked>
+    <label for="wrapContainer">Wrap body with row within container?</label>
+    
+    <h3>HTML Input</h3>
+    <textarea id="htmlInput" rows="4" cols="50"></textarea>
+    <br/>
+    
+    <input type="button" id="bootstrapify" value="Bootstrapify (process HTML)">
+    <br/><br/>
+    
+    <h3>HTML Output</h3>
+    <textarea id="htmlOutput" rows="4" cols="50"></textarea>
+</body>
+</html>
