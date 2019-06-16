@@ -1,20 +1,27 @@
 <html>
 <head>
-<script src="./Bootstrapifier.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="./Bootstrapifier.js"></script>
 <title>Bootstrapifier</title>
 <script>
     $(function(){
+        $("#rowElementsToWrap").val(Bootstrapifier.DEFAULT_ROW_ELEMENTS.join(", "));
+
         $("#bootstrapify").click(function(){
             $("#htmlOutput").val(Bootstrapifier.bootstrapify($("#htmlInput").val()));
+        });
+
+        $("#wrapContainer, input[name='rowCfg']").change(function(){
+            $("input[name='rowCfg']").prop("diabled", !$("#wrapContainer").prop("checked"));
+            $("#rowElementsToWrap").prop("disabled", !$("#wrapContainer").prop("checked") || $("input[name='rowCfg']:checked").val() != "wrapSelected");
         });
     });
 </script>
 <style>
     body, #htmlInput, #htmlOutput {
         font-family: monospace,monospace;
-        /* background-color:#222221;
-        color: #EEEEEF; */
+        background-color:#222221 !important;
+        color: #EEEEEF !important;
     }
 </style>
 </head>
@@ -28,20 +35,33 @@
     </ul>
     
     <h3>Options</h3>
+    <input type="checkbox" id="basicDarkTheme" checked>
+    <label for="basicDarkTheme">Apply basic dark theme to body?</label>
     <input type="checkbox" id="wrapContainer" checked>
-    <label for="wrapContainer">Wrap body with container?</label>
+    <label for="wrapContainer">Wrap inner body with container?</label>
     <br/>
-    <input type="checkbox" id="wrapRow" checked>
-    <label for="wrapContainer">Wrap body with row within container?</label>
+    <h4>Row Configuration</h4>
+    <input type="checkbox" name="rowCfg" value="wrapContainerRow" checked>
+    <label for="wrapContainerRow">Wrap inner container with row</label>
+    <br/>
+    <!-- <input type="radio" name="rowCfg" value="wrapAll">
+    <label for="wrapAll">Wrap every element with row</label>
+    <br/>
+    <input type="radio" name="rowCfg" value="wrapSelected" checked>
+    <label for="wrapAll">Wrap specific elements with row</label>
+    <br/>
+    <label for="rowElementsToWrap">Elements to wrap with row:</label>
+    <input type="text" name="rowElementsToWrap" id="rowElementsToWrap"> -->
+
     
     <h3>HTML Input</h3>
-    <textarea id="htmlInput" rows="4" cols="50"></textarea>
+    <textarea id="htmlInput"></textarea>
     <br/>
     
-    <input type="button" id="bootstrapify" value="Bootstrapify (process HTML)">
+    <input type="button" id="bootstrapify" value="Bootstrapify (Process HTML)">
     <br/><br/>
     
     <h3>HTML Output</h3>
-    <textarea id="htmlOutput" rows="4" cols="50"></textarea>
+    <textarea id="htmlOutput"></textarea>
 </body>
 </html>
