@@ -1,5 +1,5 @@
 # Bootstrapifier
-Parse basic HTML and add simple bootstrap classes to make the page look nicer at the click of a button.
+Parse basic HTML and add simple [Bootstrap](https://getbootstrap.com/) classes to make the page look nicer at the click of a button. The dark theme it offers is not a part of Bootstrap, it is merely some simple CSS on the following elements: `body`, `li`, `textarea`, and `input[type="text"]`.
 
 You don't need to download any of the source to parse your HTML, simply paste your HTML in the github site and copy the output: https://matsyir.github.io/Bootstrapifier/
 
