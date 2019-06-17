@@ -5,7 +5,7 @@ You don't need to download any of the source to parse your HTML, simply paste yo
 
 Examples:
 ![Bootstrapifier demo 1](./demoImages/bootstrapifierDemo1.jpg)
-![Bootstrapifier demo 2](./demoImages/bootstrapifierDemo1.jpg)
+![Bootstrapifier demo 2](./demoImages/bootstrapifierDemo2.jpg)
 
 Very much a WIP right now, but its core functionality is there.
 
