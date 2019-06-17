@@ -11,29 +11,65 @@ class Bootstrapifier
 {
   // Constants. Note: accessed without (), like a field.
   static get BOOSTRAP_CSS_URL() { return "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"; }
-  static get DEFAULT_ROW_ELEMENTS() { return ["input", "textarea", "select", "h1", "h2", "h3", "h4", "h5"]; }
+  static get DEFAULT_ROW_ELEMENTS() { return ["textarea", "select", "h1", "h2", "h3", "h4", "h5"]; }
+  static get DEFAULT_TEXT_CENTER_ELEMENTS() { return ["h1"]; }
   
-  // The main html processing function that
-  static bootstrapify(
-    htmlDocumentString,
+  // The main html processing function that adds Bootstrap classes to certain elements.
+  static bootstrapify(htmlDocumentString,
     wrapBodyInContainer=true,
-    elementTagsToWrapRow=Bootstrapifier.DEFAULT_ROW_ELEMENTS)
+    elementTagsToWrapRow=Bootstrapifier.DEFAULT_ROW_ELEMENTS,
+    elementTagsToCenterText=Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS,
+    addBasicDarkTheme=true,
+    indentSize=4,
+    debug=true)
   {
-    console.log("Starting Bootstrapify process...");
-    let HTMLNodes = (new DOMParser()).parseFromString(htmlDocumentString, "text/html").all;
-    console.log("Successfully parsed HTML code to HTML nodes.");
-    let resultString = "";
-    elementTagsToWrapRow = elementTagsToWrapRow.map((e) => {return e.toLowerCase()});
+    // allow skipping optional params and keeping default values by passing undefined or null.
+    if (wrapBodyInContainer == undefined) { wrapBodyInContainer = true }
+    if (elementTagsToWrapRow == undefined) { elementTagsToWrapRow = Bootstrapifier.DEFAULT_ROW_ELEMENTS }
+    if (elementTagsToCenterText == undefined) { elementTagsToCenterText = Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS }
+    if (addBasicDarkTheme == undefined) { addBasicDarkTheme = true }
+    if (indentSize == undefined) { indentSize = 4 }
+    if (debug == undefined) { debug = true }
+
+    function log(msg) {
+      if (debug) {
+        console.log(msg);
+      }
+    }
+    
+    log("Starting Bootstrapify process...");
+    let HTMLNodeCollection = (new DOMParser()).parseFromString(htmlDocumentString, "text/html").all;
+    log("Successfully parsed HTML code to HTML nodes. Applying bootstrap...");
+
+    let indent = " ".repeat(indentSize);
+    elementTagsToWrapRow = elementTagsToWrapRow.map((e) => { return e.toLowerCase(); });
     
     // elementTagsToWrapRow.forEach(function(element) {
     //   $(element).wrap(`<div class="row"></div>`);
     // });
+    elementTagsToCenterText.forEach(function(element) {
+      $(element).addClass("text-center");
+    });
+
+    
+    let HTMLNodes = [];
+    for(let i = 0; i < HTMLNodeCollection.length; i++)
+    {
+      HTMLNodes.push(HTMLNodeCollection[i]);
+    }
+
     for(let i = 0; i < HTMLNodes.length; i++)
     {
-      console.log(`Processing HTML Node #${i.toString()} (${HTMLNodes[i].tagName.toLowerCase()})`);
+      log(`Processing HTML Node #${i.toString()} (${HTMLNodes[i].tagName.toLowerCase()})`);
+      if (i > 1000) {
+        log("Processed over 1000 HTML elements. Manually quitting.");
+      }
 
-      // if (elementTagsToWrapRow.includes(HTMLNodes[i].tagName.toLowerCase())) {
-      //   $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
+      if (elementTagsToWrapRow.includes(HTMLNodes[i].tagName.toLowerCase())) {
+        $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
+      }
+      // if (elementTagsToCenterText.includes(HTMLNodes[i].tagName.toLowerCase())) {
+      //   HTMLNodes[i].classList.add("text-center");
       // }
 
       // depending on the tag name, perform different actions. Mostly,
@@ -46,10 +82,18 @@ class Bootstrapifier
           bootstrapLinkNode.setAttribute("type", "text/css");
           bootstrapLinkNode.setAttribute("href", Bootstrapifier.BOOSTRAP_CSS_URL);
           HTMLNodes[i].appendChild(bootstrapLinkNode);
+
+          if (addBasicDarkTheme) {
+          // body {
+          //     background-color:#222221 !important;
+          //     color: #EEEEEF !important;
+          // }
+            $(HTMLNodes[i]).append(`\n<style>\n${indent}body {\n${indent.repeat(2)}background-color:#222221 !important;\n${indent.repeat(2)}color: #EEEEEF !important;\n${indent}}\n</style>\n`);            //HTMLNodes[i].insertAdjacentHTML("beforeend", 
+          }
         break;
         case "body":
           if (wrapBodyInContainer) { // wrap body with container
-            $(HTMLNodes[i]).wrapInner(`<div class="container"></div>`);
+            $(HTMLNodes[i]).wrapInner(`\n${indent}<div class="container"></div>`);
           }
         break;
         case "input": // add format classes to inputs
@@ -80,12 +124,15 @@ class Bootstrapifier
         break;
         // TODO: List, add params/settings
       }
-
-      if (i > 1000) {
-        "Processed over 1000 HTML elements. Manually quitting."
-      }
     }
 
-    return HTMLNodes[0].outerHTML;
+    return Bootstrapifier.fixIndenting(HTMLNodes[0].outerHTML);
+  }
+
+  // Attempt to make the output nicer by fixing some of the indenting issues introduced
+  // by simply adding HTML nodes to a collection and getting the resulting HTML.
+  static fixIndenting(htmlStr) {
+    // TODO: actually implement this
+    return htmlStr;
   }
 }
