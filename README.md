@@ -4,8 +4,8 @@ Parse basic HTML and add simple bootstrap classes to make the page look nicer at
 You don't need to download any of the source to parse your HTML, simply paste your HTML in the github site and copy the output: https://matsyir.github.io/Bootstrapifier/
 
 Examples:
-![Bootstrapifier demo 1(./demoImages/bootstrapifierDemo1.jpg)
-![Bootstrapifier demo 2(./demoImages/bootstrapifierDemo1.jpg)
+![Bootstrapifier demo 1](./demoImages/bootstrapifierDemo1.jpg)
+![Bootstrapifier demo 2](./demoImages/bootstrapifierDemo1.jpg)
 
 Very much a WIP right now, but its core functionality is there.
 
