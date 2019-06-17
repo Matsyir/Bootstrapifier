@@ -11,8 +11,16 @@ class Bootstrapifier
 {
   // Constants. Note: accessed without (), like a field.
   static get BOOSTRAP_CSS_URL() { return "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"; }
-  static get DEFAULT_ROW_ELEMENTS() { return ["textarea", "select", "h1", "h2", "h3", "h4", "h5"]; }
-  static get DEFAULT_TEXT_CENTER_ELEMENTS() { return ["h1"]; }
+  static get DEFAULT_ROW_ELEMENTS() { return []; } //["textarea", "select", "h1", "h2", "h3", "h4", "h5"]; }
+  static get DEFAULT_TEXT_CENTER_ELEMENTS() { return ["h1", "h2", "h3", "h4", "h5", "ul", "ol"]; }
+  static DARK_THEME_CSS(indent) { return `
+  <style>
+  ${indent}body, li, textarea, input[type="text"] {
+  ${indent.repeat(2)}background-color:#222221 !important;
+  ${indent.repeat(2)}color: #EEEEEF !important;
+  ${indent}}
+  </style>
+  `}
   
   // The main html processing function that adds Bootstrap classes to certain elements.
   static bootstrapify(htmlDocumentString,
@@ -20,8 +28,10 @@ class Bootstrapifier
     elementTagsToWrapRow=Bootstrapifier.DEFAULT_ROW_ELEMENTS,
     elementTagsToCenterText=Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS,
     addBasicDarkTheme=true,
+    applyListGroups=true,
     indentSize=4,
-    debug=true)
+    debug=true,
+    debugMaxHtmlNodes=1000)
   {
     // allow skipping optional params and keeping default values by passing undefined or null.
     if (wrapBodyInContainer == undefined) { wrapBodyInContainer = true }
@@ -30,6 +40,7 @@ class Bootstrapifier
     if (addBasicDarkTheme == undefined) { addBasicDarkTheme = true }
     if (indentSize == undefined) { indentSize = 4 }
     if (debug == undefined) { debug = true }
+    if (debugMaxHtmlNodes == undefined) { debugMaxHtmlNodes = 1000 }
 
     function log(msg) {
       if (debug) {
@@ -39,19 +50,19 @@ class Bootstrapifier
     
     log("Starting Bootstrapify process...");
     let HTMLNodeCollection = (new DOMParser()).parseFromString(htmlDocumentString, "text/html").all;
-    log("Successfully parsed HTML code to HTML nodes. Applying bootstrap...");
+    log("Done parsing HTML code to HTML nodes. Applying Bootstrap...");
 
     let indent = " ".repeat(indentSize);
     elementTagsToWrapRow = elementTagsToWrapRow.map((e) => { return e.toLowerCase(); });
+    elementTagsToCenterText = elementTagsToCenterText.map((e) => { return e.toLowerCase(); });
     
-    // elementTagsToWrapRow.forEach(function(element) {
-    //   $(element).wrap(`<div class="row"></div>`);
-    // });
-    elementTagsToCenterText.forEach(function(element) {
-      $(element).addClass("text-center");
-    });
-
+    // wrapping everything is probably a bad idea due to not applying to many elements,
+    // such as html, head, script, style, etc... Too many odd ones to exclude
+    //let wrapRowEverywhere = elementTagsToWrapRow.includes("*");
+    //let textCenterEverywhere = elementTagsToCenterText.includes("*");
     
+    // Convert HTML Node collection to regular array, so that we only work with
+    // the initial nodes and the array doesn't get expanded when we add new elements.
     let HTMLNodes = [];
     for(let i = 0; i < HTMLNodeCollection.length; i++)
     {
@@ -61,16 +72,18 @@ class Bootstrapifier
     for(let i = 0; i < HTMLNodes.length; i++)
     {
       log(`Processing HTML Node #${i.toString()} (${HTMLNodes[i].tagName.toLowerCase()})`);
-      if (i > 1000) {
-        log("Processed over 1000 HTML elements. Manually quitting.");
+      if (debug && i > debugMaxHtmlNodes) {
+        log(`Processed max number of HTML elements (debug configuration). Manually quitting.`);
       }
 
       if (elementTagsToWrapRow.includes(HTMLNodes[i].tagName.toLowerCase())) {
+        //HTMLNodes[i].outerHTML=`<div class="row">${HTMLNodes[i].outerHTML}</div>`;// = $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
         $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
       }
-      // if (elementTagsToCenterText.includes(HTMLNodes[i].tagName.toLowerCase())) {
-      //   HTMLNodes[i].classList.add("text-center");
-      // }
+      if (elementTagsToCenterText.includes(HTMLNodes[i].tagName.toLowerCase())) {
+        $(HTMLNodes[i]).addClass("text-center");
+        //HTMLNodes[i].classList.add("text-center");
+      }
 
       // depending on the tag name, perform different actions. Mostly,
       // adding a Bootstrap class to improve formatting.
@@ -84,11 +97,7 @@ class Bootstrapifier
           HTMLNodes[i].appendChild(bootstrapLinkNode);
 
           if (addBasicDarkTheme) {
-          // body {
-          //     background-color:#222221 !important;
-          //     color: #EEEEEF !important;
-          // }
-            $(HTMLNodes[i]).append(`\n<style>\n${indent}body {\n${indent.repeat(2)}background-color:#222221 !important;\n${indent.repeat(2)}color: #EEEEEF !important;\n${indent}}\n</style>\n`);            //HTMLNodes[i].insertAdjacentHTML("beforeend", 
+            $(HTMLNodes[i]).append(Bootstrapifier.DARK_THEME_CSS(indent));
           }
         break;
         case "body":
@@ -122,10 +131,17 @@ class Bootstrapifier
         case "select":
           HTMLNodes[i].classList.add("form-control");
         break;
-        // TODO: List, add params/settings
+        case "ul":
+        case "ol":
+          HTMLNodes[i].classList.add("list-group", "w-50", "ml-auto", "mr-auto");
+        break;
+        case "li":
+          HTMLNodes[i].classList.add("list-group-item");
+        break;
       }
     }
 
+    log("Completed Bootstrapify process. The code output was returned.")
     return Bootstrapifier.fixIndenting(HTMLNodes[0].outerHTML);
   }
 
