@@ -4,16 +4,8 @@
 <script src="./Bootstrapifier.js"></script>
 <title>Bootstrapifier</title>
 <script>
-    //https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
-    function copyToClipboard(element) {
-        var $temp = $("<span style='opacity:0;'>");
-        $("body").append($temp);
-        $temp.val($(element).text()).select();
-        document.execCommand("copy");
-        $temp.remove();
-
-        console.log("HTML output was copied to the clipboard.");
-    }
+    
+    let defaultClipboardBtnVal = "Copy HTML Output To Clipboard";
     $(function() {
         $("#elementsToWrapRow").val(Bootstrapifier.DEFAULT_ROW_ELEMENTS.join(", "));
         $("#elementsToWrapTextCenter").val(Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS.join(", "));
@@ -34,7 +26,32 @@
             );
         });
         $("#copyOutput").click(function() {
-            copyToClipboard(this);
+            // Big thx to 'Alvaro Montoro' very good answer about this on here
+            // https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
+            $("#htmlOutput").select();
+            try {
+                document.execCommand("copy");
+                document.getSelection().removeAllRanges();
+                
+                let initialWidth = $("#copyOutput").val(defaultClipboardBtnVal).width();
+                $("#copyOutput").val("Success").addClass("btn-success");
+                $("#copyOutput").width(initialWidth);
+                setTimeout(function() {
+                    $("#copyOutput").val(defaultClipboardBtnVal).removeClass("btn-success");
+                }, 2000);
+                
+                
+                console.log(`The following HTML output was copied to the clipboard:`);
+                console.log({ copied : $("#htmlOutput").val() });
+            } catch(e) {
+                let initialWidth = $("#copyOutput").val(defaultClipboardBtnVal).width();
+                $("#copyOutput").val("Error").addClass("btn-danger");
+                $("#copyOutput").width(initialWidth);
+                setTimeout(function() {
+                    $("#copyOutput").val(defaultClipboardBtnVal).removeClass("btn-danger");
+                }, 2000);
+                console.log(`Error copying HTML output to clipboard: ${e}`)
+            }
         });
     });
 </script>
@@ -47,7 +64,7 @@
 
 <body>
     <h1>Bootstrapifier</h1>
-    <h4><a href="https://github.com/Matsyir/Bootstrapifier">GitHub</a></h4>
+    <a href="https://github.com/Matsyir/Bootstrapifier"><h4>GitHub Repo</h4></a>
     
     <h3>Requirements</h3>
     <ul>
