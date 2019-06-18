@@ -29,6 +29,7 @@ class Bootstrapifier
     elementTagsToCenterText=Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS,
     addBasicDarkTheme=true,
     applyListGroups=true,
+    halfWidthCenterListGroups=true,
     indentSize=4,
     debug=true,
     debugMaxHtmlNodes=1000)
@@ -38,6 +39,7 @@ class Bootstrapifier
     if (elementTagsToWrapRow == undefined) { elementTagsToWrapRow = Bootstrapifier.DEFAULT_ROW_ELEMENTS }
     if (elementTagsToCenterText == undefined) { elementTagsToCenterText = Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS }
     if (addBasicDarkTheme == undefined) { addBasicDarkTheme = true }
+    if (applyListGroups == undefined) { applyListGroups = true }
     if (indentSize == undefined) { indentSize = 4 }
     if (debug == undefined) { debug = true }
     if (debugMaxHtmlNodes == undefined) { debugMaxHtmlNodes = 1000 }
@@ -56,11 +58,6 @@ class Bootstrapifier
     elementTagsToWrapRow = elementTagsToWrapRow.map((e) => { return e.toLowerCase(); });
     elementTagsToCenterText = elementTagsToCenterText.map((e) => { return e.toLowerCase(); });
     
-    // wrapping everything is probably a bad idea due to not applying to many elements,
-    // such as html, head, script, style, etc... Too many odd ones to exclude
-    //let wrapRowEverywhere = elementTagsToWrapRow.includes("*");
-    //let textCenterEverywhere = elementTagsToCenterText.includes("*");
-    
     // Convert HTML Node collection to regular array, so that we only work with
     // the initial nodes and the array doesn't get expanded when we add new elements.
     let HTMLNodes = [];
@@ -71,23 +68,24 @@ class Bootstrapifier
 
     for(let i = 0; i < HTMLNodes.length; i++)
     {
-      log(`Processing HTML Node #${i.toString()} (${HTMLNodes[i].tagName.toLowerCase()})`);
+      let lowercaseTagName = HTMLNodes[i].tagName.toLowerCase();
+      log(`Processing HTML Node #${i.toString()} (${lowercaseTagName})`);
       if (debug && i > debugMaxHtmlNodes) {
         log(`Processed max number of HTML elements (debug configuration). Manually quitting.`);
       }
 
-      if (elementTagsToWrapRow.includes(HTMLNodes[i].tagName.toLowerCase())) {
-        //HTMLNodes[i].outerHTML=`<div class="row">${HTMLNodes[i].outerHTML}</div>`;// = $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
-        $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
+      if (elementTagsToWrapRow.includes(lowercaseTagName)) {
+        HTMLNodes[i].outerHTML=`<div class="row">${HTMLNodes[i].outerHTML}</div>`;// = $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
+        //$(HTMLNodes[i]).wrap(`<div class="row"></div>`);
       }
-      if (elementTagsToCenterText.includes(HTMLNodes[i].tagName.toLowerCase())) {
-        $(HTMLNodes[i]).addClass("text-center");
-        //HTMLNodes[i].classList.add("text-center");
+      if (elementTagsToCenterText.includes(lowercaseTagName)) {
+        //$(HTMLNodes[i]).addClass("text-center");
+        HTMLNodes[i].classList.add("text-center");
       }
 
       // depending on the tag name, perform different actions. Mostly,
       // adding a Bootstrap class to improve formatting.
-      switch (HTMLNodes[i].tagName.toLowerCase())
+      switch (lowercaseTagName)
       {
         case "head": // append bootstrap link reference in the head
           let bootstrapLinkNode = document.createElement("link");
@@ -133,7 +131,12 @@ class Bootstrapifier
         break;
         case "ul":
         case "ol":
-          HTMLNodes[i].classList.add("list-group", "w-50", "ml-auto", "mr-auto");
+          if (applyListGroups) {
+            HTMLNodes[i].classList.add("list-group");
+            if (halfWidthCenterListGroups) {
+              HTMLNodes[i].classList.add("w-50", "ml-auto", "mr-auto");
+            }
+          }
         break;
         case "li":
           HTMLNodes[i].classList.add("list-group-item");

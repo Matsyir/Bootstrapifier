@@ -4,19 +4,20 @@
 <script src="./Bootstrapifier.js"></script>
 <title>Bootstrapifier</title>
 <script>
-    $(function(){
+    //https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
+    function copyToClipboard(element) {
+        var $temp = $("<span style='opacity:0;'>");
+        $("body").append($temp);
+        $temp.val($(element).text()).select();
+        document.execCommand("copy");
+        $temp.remove();
+
+        console.log("HTML output was copied to the clipboard.");
+    }
+    $(function() {
         $("#elementsToWrapRow").val(Bootstrapifier.DEFAULT_ROW_ELEMENTS.join(", "));
         $("#elementsToWrapTextCenter").val(Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS.join(", "));
-        $("#bootstrapify").click(function(){
-            // bootstrapify(htmlDocumentString,
-            //     wrapBodyInContainer=true,
-            //     elementTagsToWrapRow=Bootstrapifier.DEFAULT_ROW_ELEMENTS,
-            //     elementTagsToCenterText=Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS,
-            //     addBasicDarkTheme=true,
-            //     applyListGroups=true,
-            //     indentSize=4,
-            //     debug=true,
-            //     debugMaxHtmlNodes=1000
+        $("#bootstrapify").click(function() {
             $("#htmlOutput").val(
                 Bootstrapifier.bootstrapify(
                     $("#htmlInput").val(),
@@ -25,20 +26,16 @@
                     $("#elementsToWrapTextCenter").val().split(",").map((elem) => { return elem.trim().toLowerCase() }),
                     $("#basicDarkTheme").prop("checked"),
                     $("#applyListGroups").prop("checked"),
+                    $("#centerLists").prop("checked"),
                     4,
                     true,
-                    1000
+                    Number.MAX_SAFE_INTEGER
                 )
             );
         });
-
-        // $("#wrapContainer, input[name='rowCfg']").change(function(){
-        //     $("input[name='rowCfg']").prop("diabled", !$("#wrapContainer").prop("checked"));
-        //     $("#elementsToWrapRow").prop("disabled",
-        //         !$("#wrapContainer").prop("checked") ||
-        //         $("input[name='rowCfg']:checked").val() != "wrapSelected"
-        //     );
-        // });
+        $("#copyOutput").click(function() {
+            copyToClipboard(this);
+        });
     });
 </script>
 <style>
@@ -50,6 +47,7 @@
 
 <body>
     <h1>Bootstrapifier</h1>
+    <h4><a href="https://github.com/Matsyir/Bootstrapifier">GitHub</a></h4>
     
     <h3>Requirements</h3>
     <ul>
@@ -63,16 +61,12 @@
     <input type="checkbox" id="applyListGroups" checked>
     <label for="applyListGroups">Apply list groups and list group items to lists (ul, ol, li)?</label>
     <br/>
+    <input type="checkbox" id="centerLists" checked>
+    <label for="centerLists">Center list groups at 50% width? (adds "w-50", "ml-auto", and "mr-auto" classes to "ol" and "ul)</label>
+    <br/>
     <input type="checkbox" id="basicDarkTheme">
-    <label for="basicDarkTheme">Apply basic dark theme to body?</label>
+    <label for="basicDarkTheme">Apply basic dark theme to body? Note that this is not Bootstrap. Details on repo.</label>
     <br/>
-    <!-- <h4>Row Configuration</h4>-->
-    <!-- <input type="radio" name="rowCfg" value="wrapAll">
-    <label for="wrapAll">Wrap every element with row</label>
-    <br/>
-    <input type="radio" name="rowCfg" value="wrapSelected" checked>
-    <label for="wrapAll">Wrap specific elements with row</label>
-    <br/> -->
     <label for="elementsToWrapRow">Element tags to wrap with row (csv):</label>
     <input type="text" name="elementsToWrapRow" id="elementsToWrapRow">
     <br/>
@@ -85,6 +79,8 @@
     <br/>
     
     <input type="button" id="bootstrapify" value="Bootstrapify (Process HTML)">
+    &nbsp;
+    <input type="button" id="copyOutput" value="Copy HTML Output To Clipboard">
     <br/><br/>
     
     <h3>HTML Output</h3>

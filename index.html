@@ -1,100 +1,96 @@
 <html><head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="./Bootstrapifier.js"></script>
-    <title>Bootstrapifier</title>
-    <script>
-        $(function(){
-            $("#elementsToWrapRow").val(Bootstrapifier.DEFAULT_ROW_ELEMENTS.join(", "));
-            $("#elementsToWrapTextCenter").val(Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS.join(", "));
-            $("#bootstrapify").click(function(){
-                // bootstrapify(htmlDocumentString,
-                //     wrapBodyInContainer=true,
-                //     elementTagsToWrapRow=Bootstrapifier.DEFAULT_ROW_ELEMENTS,
-                //     elementTagsToCenterText=Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS,
-                //     addBasicDarkTheme=true,
-                //     applyListGroups=true,
-                //     indentSize=4,
-                //     debug=true,
-                //     debugMaxHtmlNodes=1000
-                $("#htmlOutput").val(
-                    Bootstrapifier.bootstrapify(
-                        $("#htmlInput").val(),
-                        $("#wrapContainer").prop("checked"),
-                        $("#elementsToWrapRow").val().split(",").map((elem) => { return elem.trim().toLowerCase() }),
-                        $("#elementsToWrapTextCenter").val().split(",").map((elem) => { return elem.trim().toLowerCase() }),
-                        $("#basicDarkTheme").prop("checked"),
-                        $("#applyListGroups").prop("checked"),
-                        4,
-                        true,
-                        1000
-                    )
-                );
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="./Bootstrapifier.js"></script>
+        <title>Bootstrapifier</title>
+        <script>
+            //https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
+            function copyToClipboard(element) {
+                var $temp = $("<span style='opacity:0;'>");
+                $("body").append($temp);
+                $temp.val($(element).text()).select();
+                document.execCommand("copy");
+                $temp.remove();
+
+                console.log("HTML output was copied to the clipboard.");
+            }
+            $(function() {
+                $("#elementsToWrapRow").val(Bootstrapifier.DEFAULT_ROW_ELEMENTS.join(", "));
+                $("#elementsToWrapTextCenter").val(Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS.join(", "));
+                $("#bootstrapify").click(function() {
+                    $("#htmlOutput").val(
+                        Bootstrapifier.bootstrapify(
+                            $("#htmlInput").val(),
+                            $("#wrapContainer").prop("checked"),
+                            $("#elementsToWrapRow").val().split(",").map((elem) => { return elem.trim().toLowerCase() }),
+                            $("#elementsToWrapTextCenter").val().split(",").map((elem) => { return elem.trim().toLowerCase() }),
+                            $("#basicDarkTheme").prop("checked"),
+                            $("#applyListGroups").prop("checked"),
+                            $("#centerLists").prop("checked"),
+                            4,
+                            true,
+                            Number.MAX_SAFE_INTEGER
+                        )
+                    );
+                });
+                $("#copyOutput").click(function() {
+                    copyToClipboard(this);
+                });
             });
-    
-            // $("#wrapContainer, input[name='rowCfg']").change(function(){
-            //     $("input[name='rowCfg']").prop("diabled", !$("#wrapContainer").prop("checked"));
-            //     $("#elementsToWrapRow").prop("disabled",
-            //         !$("#wrapContainer").prop("checked") ||
-            //         $("input[name='rowCfg']:checked").val() != "wrapSelected"
-            //     );
-            // });
-        });
-    </script>
-    <style>
-        textarea, input[type="text"] {
-            font-family: monospace,monospace;
-        }
-    </style>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
-      <style>
-          body, li, textarea, input[type="text"] {
-              background-color:#222221 !important;
-              color: #EEEEEF !important;
-          }
-      </style>
-      </head>
-    
-    <body><div class="container">
-        <h1 class="text-center">Bootstrapifier</h1>
+        </script>
+        <style>
+            textarea, input[type="text"] {
+                font-family: monospace,monospace;
+            }
+        </style>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+          <style>
+              body, li, textarea, input[type="text"] {
+                  background-color:#222221 !important;
+                  color: #EEEEEF !important;
+              }
+          </style>
+          </head>
         
-        <h3 class="text-center">Requirements</h3>
-        <ul class="text-center list-group w-50 ml-auto mr-auto">
-            <li class="list-group-item">Must be valid HTML</li>
-        </ul>
+        <body><div class="container">
+            <h1 class="text-center">Bootstrapifier</h1>
+            <h4 class="text-center"><a href="https://github.com/Matsyir/Bootstrapifier">GitHub</a></h4>
+            
+            <h3 class="text-center">Requirements</h3>
+            <ul class="text-center list-group w-50 ml-auto mr-auto">
+                <li class="list-group-item">Must be valid HTML</li>
+            </ul>
+            
+            <h3 class="text-center">Options</h3>
+            <input type="checkbox" id="wrapContainer" checked="">
+            <label for="wrapContainer">Wrap body contents with container?</label>
+            <br>
+            <input type="checkbox" id="applyListGroups" checked="">
+            <label for="applyListGroups">Apply list groups and list group items to lists (ul, ol, li)?</label>
+            <br>
+            <input type="checkbox" id="centerLists" checked="">
+            <label for="centerLists">Center list groups at 50% width? (adds "w-50", "ml-auto", and "mr-auto" classes to "ol" and "ul)</label>
+            <br>
+            <input type="checkbox" id="basicDarkTheme">
+            <label for="basicDarkTheme">Apply basic dark theme to body? Note that this is not Bootstrap. Details on repo.</label>
+            <br>
+            <label for="elementsToWrapRow">Element tags to wrap with row (csv):</label>
+            <input type="text" name="elementsToWrapRow" id="elementsToWrapRow" class="form-control">
+            <br>
+            <label for="elementsToWrapTextCenter">Element tags to add text-center class (csv):</label>
+            <input type="text" name="elementsToWrapTextCenter" id="elementsToWrapTextCenter" class="form-control">
+            <br><br>
+            
+            <h3 class="text-center">HTML Input</h3>
+            <textarea id="htmlInput" class="form-control"></textarea>
+            <br>
+            
+            <input type="button" id="bootstrapify" value="Bootstrapify (Process HTML)" class="btn btn-primary">
+            &nbsp;
+            <input type="button" id="copyOutput" value="Copy HTML Output To Clipboard" class="btn btn-primary">
+            <br><br>
+            
+            <h3 class="text-center">HTML Output</h3>
+            <textarea id="htmlOutput" class="form-control"></textarea>
         
-        <h3 class="text-center">Options</h3>
-        <input type="checkbox" id="wrapContainer" checked="">
-        <label for="wrapContainer">Wrap body contents with container?</label>
-        <br>
-        <input type="checkbox" id="applyListGroups" checked="">
-        <label for="applyListGroups">Apply list groups and list group items to lists (ul, ol, li)?</label>
-        <br>
-        <input type="checkbox" id="basicDarkTheme">
-        <label for="basicDarkTheme">Apply basic dark theme to body?</label>
-        <br>
-        <!-- <h4>Row Configuration</h4>-->
-        <!-- <input type="radio" name="rowCfg" value="wrapAll">
-        <label for="wrapAll">Wrap every element with row</label>
-        <br/>
-        <input type="radio" name="rowCfg" value="wrapSelected" checked>
-        <label for="wrapAll">Wrap specific elements with row</label>
-        <br/> -->
-        <label for="elementsToWrapRow">Element tags to wrap with row (csv):</label>
-        <input type="text" name="elementsToWrapRow" id="elementsToWrapRow" class="form-control">
-        <br>
-        <label for="elementsToWrapTextCenter">Element tags to add text-center class (csv):</label>
-        <input type="text" name="elementsToWrapTextCenter" id="elementsToWrapTextCenter" class="form-control">
-        <br><br>
         
-        <h3 class="text-center">HTML Input</h3>
-        <textarea id="htmlInput" class="form-control"></textarea>
-        <br>
-        
-        <input type="button" id="bootstrapify" value="Bootstrapify (Process HTML)" class="btn btn-primary">
-        <br><br>
-        
-        <h3 class="text-center">HTML Output</h3>
-        <textarea id="htmlOutput" class="form-control"></textarea>
-    
-    
-    </div></body></html>
+        </div></body></html>
