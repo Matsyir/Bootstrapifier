@@ -11,7 +11,8 @@ class Bootstrapifier
 {
   // Constants. Note: accessed without (), like a field.
   static get BOOSTRAP_CSS_URL() { return "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css"; }
-  static get DEFAULT_ROW_ELEMENTS() { return []; } //["textarea", "select", "h1", "h2", "h3", "h4", "h5"]; }
+  static get GENERATED_PAGE_COMMENT() { return "Page generated with Bootstrapifier - https://github.com/Matsyir/Bootstrapifier - MIT License"; }
+  static get DEFAULT_ROW_ELEMENTS() { return []; }
   static get DEFAULT_TEXT_CENTER_ELEMENTS() { return ["h1", "h2", "h3", "h4", "h5", "ul", "ol"]; }
   static DARK_THEME_CSS(indent) { return `
   <style>
@@ -32,7 +33,8 @@ class Bootstrapifier
     halfWidthCenterListGroups=true,
     indentSize=4,
     debug=true,
-    debugMaxHtmlNodes=1000)
+    debugMaxHtmlNodes=1000,
+    callback=null)
   {
     // allow skipping optional params and keeping default values by passing undefined or null.
     if (wrapBodyInContainer == undefined) { wrapBodyInContainer = true }
@@ -43,6 +45,7 @@ class Bootstrapifier
     if (indentSize == undefined) { indentSize = 4 }
     if (debug == undefined) { debug = true }
     if (debugMaxHtmlNodes == undefined) { debugMaxHtmlNodes = 1000 }
+    // callback can stay null
 
     function log(msg) {
       if (debug) {
@@ -75,11 +78,9 @@ class Bootstrapifier
       }
 
       if (elementTagsToWrapRow.includes(lowercaseTagName)) {
-        HTMLNodes[i].outerHTML=`<div class="row">${HTMLNodes[i].outerHTML}</div>`;// = $(HTMLNodes[i]).wrap(`<div class="row"></div>`);
-        //$(HTMLNodes[i]).wrap(`<div class="row"></div>`);
+        HTMLNodes[i].outerHTML=`<div class="row">${HTMLNodes[i].outerHTML}</div>`;
       }
       if (elementTagsToCenterText.includes(lowercaseTagName)) {
-        //$(HTMLNodes[i]).addClass("text-center");
         HTMLNodes[i].classList.add("text-center");
       }
 
@@ -87,6 +88,10 @@ class Bootstrapifier
       // adding a Bootstrap class to improve formatting.
       switch (lowercaseTagName)
       {
+        case "html": // add Bootstrapifier comment to the top of the html tag (can be removed)
+            let bootstrapifierComment = document.createComment(Bootstrapifier.GENERATED_PAGE_COMMENT);
+            HTMLNodes[i].prepend(bootstrapifierComment);
+        break;
         case "head": // append bootstrap link reference in the head
           let bootstrapLinkNode = document.createElement("link");
           bootstrapLinkNode.setAttribute("rel", "stylesheet");
@@ -100,7 +105,7 @@ class Bootstrapifier
         break;
         case "body":
           if (wrapBodyInContainer) { // wrap body with container
-            $(HTMLNodes[i]).wrapInner(`\n${indent}<div class="container"></div>`);
+            $(HTMLNodes[i]).wrapInner(`<div class="container"></div>`);
           }
         break;
         case "input": // add format classes to inputs
@@ -144,14 +149,22 @@ class Bootstrapifier
       }
     }
 
+    if (typeof callback == "function") {
+      callback();
+    }
     log("Completed Bootstrapify process. The code output was returned.")
-    return Bootstrapifier.fixIndenting(HTMLNodes[0].outerHTML);
+    return Bootstrapifier.improveFormatting(HTMLNodes[0].outerHTML, indent);
   }
 
   // Attempt to make the output nicer by fixing some of the indenting issues introduced
   // by simply adding HTML nodes to a collection and getting the resulting HTML.
-  static fixIndenting(htmlStr) {
+  static improveFormatting(htmlStr, indent) {
     // TODO: actually implement this
+    htmlStr = htmlStr.replace("<html><!--", `<html>\n<!--`);
+    htmlStr = htmlStr.replace("--><head>", "-->\n<head>");
+    htmlStr = htmlStr.replace(`<body><div class="container">`, `<body>\n${indent}<div class="container">`);
+    htmlStr = htmlStr.replace(`</div></body></html>`, `${indent}</div>\n</body>\n</html>`);
+
     return htmlStr;
   }
 }

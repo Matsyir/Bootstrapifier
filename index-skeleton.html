@@ -4,9 +4,76 @@
 <script src="./Bootstrapifier.js"></script>
 <title>Bootstrapifier</title>
 <script>
-    
-    let defaultClipboardBtnVal = "Copy HTML Output To Clipboard";
-    $(function() {
+    const BTN_ANIMATE_DELAY = 3000;
+    const initialCopyClipboardBtnVal = "Copy HTML Output To Clipboard";
+    const initialParseClipboardBtnVal = "Parse & Replace Clipboard";
+
+    // Thanks to 'Alvaro Montoro' solid detailed answer about this on here
+    // https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
+    // though I switched to the modern clipboard API, it was informative.
+    // I liked this one for the modern API: https://alligator.io/js/async-clipboard-api/
+    function copyToClipboard(selectorToCopy, onSuccess=null, onError=null) {
+        navigator.clipboard.writeText($(selectorToCopy).val()).then(() => {
+            if (typeof onSuccess == "function") { // success callback
+                onSuccess($(selectorToCopy).val());
+            }
+        })
+        .catch(err => {
+            if (typeof onError == "function") { // error callback
+                onError(err);
+            }
+        })
+    }
+    function pasteFromClipboard(selectorToPaste, onSuccess=null, onError=null) {
+        navigator.clipboard.readText().then(text => {
+            $(selectorToPaste).val(text);
+            if (typeof onSuccess == "function") { // success callback
+                onSuccess(text);
+            }
+        })
+        .catch(err => {
+            if (typeof onError == "function") { // error callback
+                onError(err);
+            }
+        })
+    }
+
+    // Change btn text to "Success" and give bootstrap class "btn-success" (green)
+    // Width may occasionally break temporarily if spamming the button. Negligible
+    function animateButtonCopied(buttonSelector, initialText) {
+        let initialWidth = $(buttonSelector).width();
+        $(buttonSelector).val("Result Copied!").addClass("btn-success");
+        $(buttonSelector).width(initialWidth);
+        setTimeout(function() {
+            $(buttonSelector).val(initialText).removeClass("btn-success");
+        }, BTN_ANIMATE_DELAY);
+    }
+
+    // Change btn text to "Error" and give bootstrap class "btn-danger" (red)
+    // Width may occasionally break temporarily if spamming the button. Negligible
+    function animateButtonError(buttonSelector, initialText) {
+        let initialWidth = $(buttonSelector).width();
+        $(buttonSelector).val("Error").addClass("btn-danger");
+        $(buttonSelector).width(initialWidth);
+        setTimeout(function() {
+            $(buttonSelector).val(initialText).removeClass("btn-danger");
+        }, BTN_ANIMATE_DELAY);
+    }
+
+    // Change btn text to "Parsing..." and give bootstrap class "btn-warning" (yellow)
+    // Width may occasionally break temporarily if spamming the button. Negligible
+    function animateButtonParsing(buttonSelector) {
+        let initialWidth = $(buttonSelector).width();
+        $(buttonSelector).addClass("btn-warning").val("Parsing...");
+        $(buttonSelector).width(initialWidth);
+    }
+
+    $(function() { // on load
+        if (!navigator.clipboard) {
+            $("#copyOutput").prop("disabled", true).hide();
+            $("#parseClipboard").prop("disabled", true).hide();
+        }
+
         $("#elementsToWrapRow").val(Bootstrapifier.DEFAULT_ROW_ELEMENTS.join(", "));
         $("#elementsToWrapTextCenter").val(Bootstrapifier.DEFAULT_TEXT_CENTER_ELEMENTS.join(", "));
         $("#bootstrapify").click(function() {
@@ -26,38 +93,60 @@
             );
         });
         $("#copyOutput").click(function() {
-            // Big thx to 'Alvaro Montoro' very good answer about this on here
-            // https://stackoverflow.com/questions/22581345/click-button-copy-to-clipboard-using-jquery
-            $("#htmlOutput").select();
-            try {
-                document.execCommand("copy");
-                document.getSelection().removeAllRanges();
-                
-                let initialWidth = $("#copyOutput").val(defaultClipboardBtnVal).width();
-                $("#copyOutput").val("Success").addClass("btn-success");
-                $("#copyOutput").width(initialWidth);
-                setTimeout(function() {
-                    $("#copyOutput").val(defaultClipboardBtnVal).removeClass("btn-success");
-                }, 2000);
-                
-                
-                console.log(`The following HTML output was copied to the clipboard:`);
-                console.log({ copied : $("#htmlOutput").val() });
-            } catch(e) {
-                let initialWidth = $("#copyOutput").val(defaultClipboardBtnVal).width();
-                $("#copyOutput").val("Error").addClass("btn-danger");
-                $("#copyOutput").width(initialWidth);
-                setTimeout(function() {
-                    $("#copyOutput").val(defaultClipboardBtnVal).removeClass("btn-danger");
-                }, 2000);
-                console.log(`Error copying HTML output to clipboard: ${e}`)
-            }
+            copyToClipboard("#htmlOutput",
+                function(textCopied) { // on success
+                    animateButtonCopied("#copyOutput", initialCopyClipboardBtnVal);
+                    
+                    console.log(`The following HTML output was copied to the clipboard:`);
+                    // log as an object so it can be collapsed and does not spam the console too much.
+                    console.log({ copied : textCopied });
+                },
+                function(err) { // on error
+                    animateButtonError("#copyOutput");
+
+                    console.log(`Error copying HTML output to clipboard: ${err}`)
+                }
+            );
+        });
+        $("#parseClipboard").click(function() {
+            pasteFromClipboard("#htmlInput",
+                function(textPasted) { // on success
+                    animateButtonParsing("#parseClipboard");
+                    console.log(`The following HTML was pasted to the clipboard:`);
+                    console.log({ pasted : textPasted });
+                    // delay execution by 100ms so the browser has time to update the button
+                    // to display that it's parsing.
+                    setTimeout(function(){
+                        $("#bootstrapify").trigger("click")
+                        copyToClipboard("#htmlOutput",
+                            function(textCopied) { // on success
+                                $("#parseClipboard").removeClass("btn-warning");
+                                animateButtonCopied("#parseClipboard", initialParseClipboardBtnVal);
+                                
+                                console.log(`The following HTML output was copied to the clipboard:`);
+                                // log as an object so it can be collapsed and does not spam the console too much.
+                                console.log({ copied : textCopied });
+                            },
+                            function(err) { // on error
+                                animateButtonError("#parseClipboard");
+        
+                                console.log(`Error copying HTML output to clipboard: ${err}`)
+                            }
+                        );
+                        $("#parseClipboard").focus();
+                    }, 100);
+                },
+                function(err) { // on error
+                    animateButtonError("#parseClipboard");
+                    console.log(`Error pasting HTML from clipboard: ${err}`)
+                }
+            );
         });
     });
 </script>
 <style>
     textarea, input[type="text"] {
-        font-family: monospace,monospace;
+        font-family: monospace,monospace !important;
     }
 </style>
 </head>
@@ -66,9 +155,14 @@
     <h1>Bootstrapifier</h1>
     <a href="https://github.com/Matsyir/Bootstrapifier"><h4>GitHub Repo</h4></a>
     
-    <h3>Requirements</h3>
+    <h3>Guidelines</h3>
     <ul>
-        <li>Must be valid HTML</li>
+        <li>No need to include any classes or id's for it to work</li>
+        <li>No need to include/link Bootstrap, it will for you</li>
+        <li>It will add the classes alongside existing ones, which could cause CSS interference</li>
+        <li>It will preserve scripts and comments</li>
+        <li>Simply copy your HTML, and click the "Parse &amp; Replace Clipboard" button. Alternatively, paste it in the HTML Input text area, then parse and copy it</li>
+        <li>Copy/Paste buttons may be disabled if your browser does not support clipboard usage</li>
     </ul>
     
     <h3>Options</h3>
@@ -79,7 +173,7 @@
     <label for="applyListGroups">Apply list groups and list group items to lists (ul, ol, li)?</label>
     <br/>
     <input type="checkbox" id="centerLists" checked>
-    <label for="centerLists">Center list groups at 50% width? (adds "w-50", "ml-auto", and "mr-auto" classes to "ol" and "ul)</label>
+    <label for="centerLists">Center list groups at 50% width? (adds "w-50", "ml-auto", and "mr-auto" classes to "ol" and "ul")</label>
     <br/>
     <input type="checkbox" id="basicDarkTheme">
     <label for="basicDarkTheme">Apply basic dark theme to body? Note that this is not Bootstrap. Details on repo.</label>
@@ -89,13 +183,14 @@
     <br/>
     <label for="elementsToWrapTextCenter">Element tags to add text-center class (csv):</label>
     <input type="text" name="elementsToWrapTextCenter" id="elementsToWrapTextCenter">
+    <br/>
+    <input type="button" id="parseClipboard" value="Parse &amp; Replace Clipboard">
     <br/><br/>
-    
     <h3>HTML Input</h3>
     <textarea id="htmlInput"></textarea>
     <br/>
     
-    <input type="button" id="bootstrapify" value="Bootstrapify (Process HTML)">
+    <input type="button" id="bootstrapify" value="Bootstrapify (Parse HTML Input)">
     &nbsp;
     <input type="button" id="copyOutput" value="Copy HTML Output To Clipboard">
     <br/><br/>
